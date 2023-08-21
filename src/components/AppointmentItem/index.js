@@ -1,39 +1,33 @@
 // Write your code here
 import './index.css'
 
-const AppointmentItem = props => {
-  const {eachDetails, onStart} = props
-  const {date, title, isStarted, id} = eachDetails
+const AppointmentIem = props => {
+  const {appointmentDetails, toggleIsStarred} = props
+  const {id, title, date, isStarred} = appointmentDetails
+  const starImgUrl = isStarred
+    ? 'https://assets.ccbp.in/frontend/react-js/appointments-app/filled-star-img.png'
+    : 'https://assets.ccbp.in/frontend/react-js/appointments-app/star-img.png'
 
-  const startBtn = () => {
-    onStart(id)
+  const onClickStar = () => {
+    toggleIsStarred(id)
   }
 
   return (
-    <div className="list-item d-flex space-between">
-      <div className="appointment-details">
-        <p>{title}</p>
-        <p>{`Date: ${date}`}</p>
-      </div>
-      <div>
+    <li className="appointment-item">
+      <div className="header-container">
+        <p className="title">{title}</p>
         <button
-          data-testid="star"
           type="button"
-          className="button"
-          onClick={startBtn}
+          data-testid="star"
+          className="star-button"
+          onClick={onClickStar}
         >
-          <img
-            src={
-              isStarted
-                ? 'https://assets.ccbp.in/frontend/react-js/appointments-app/filled-star-img.png'
-                : 'https://assets.ccbp.in/frontend/react-js/appointments-app/star-img.png'
-            }
-            alt="star"
-          />
+          <img src={starImgUrl} className="star" alt="star" />
         </button>
       </div>
-    </div>
+      <p className="date">Date: {date}</p>
+    </li>
   )
 }
 
-export default AppointmentItem
+export default AppointmentIem

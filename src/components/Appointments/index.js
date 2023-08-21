@@ -1,133 +1,138 @@
-// Write your code here
 import {Component} from 'react'
-import {v4 as uuidv4} from 'uuid'
+import {v4} from 'uuid'
 import {format} from 'date-fns'
+
+import AppointmentItem from '../AppointmentItem'
+
 import './index.css'
-import AppointmentItem from '../AppointmentItem/index'
 
 class Appointments extends Component {
   state = {
-    title: '',
-    date: '',
-    appointmentList: [],
-    isFilter: false,
+    appointmentsList: [],
+    titleInput: '',
+    dateInput: '',
+    isFilterActive: false,
   }
 
-  filterStared = () => {
-    this.setState(prevState => ({isFilter: !prevState.isFilter}))
-    this.stared()
-  }
-
-  stared = () => {
-    const {appointmentList, isFilter} = this.state
-    const filterStarList = appointmentList.filter(
-      each => each.isStarted !== isFilter,
-    )
-    this.setState(() => ({
-      appointmentList: filterStarList,
-    }))
-  }
-
-  onStart = id => {
+  toggleIsStarred = id => {
     this.setState(prevState => ({
-      appointmentList: prevState.appointmentList.map(each => {
-        if (id === each.id) {
-          return {...each, isStarted: !each.isStarted}
+      appointmentsList: prevState.appointmentsList.map(eachAppointment => {
+        if (id === eachAppointment.id) {
+          return {...eachAppointment, isStarred: !eachAppointment.isStarred}
         }
-        return each
+        return eachAppointment
       }),
     }))
   }
 
-  titleInput = titleEvent => {
-    this.setState({title: titleEvent.target.value})
-  }
+  onFilter = () => {
+    const {isFilterActive} = this.state
 
-  dateInput = dateEvent => {
     this.setState({
-      date: dateEvent.target.value,
+      isFilterActive: !isFilterActive,
     })
   }
 
-  addAppointment = () => {
-    const {title, date} = this.state
-    if (title !== '' && date !== '') {
-      const newAppointment = {
-        id: uuidv4(),
-        title,
-        date: format(new Date(date), 'dd MMMM yyyy, EEEE'),
-        isStarted: false,
-      }
+  onChangeDateInput = event => {
+    this.setState({dateInput: event.target.value})
+  }
 
-      this.setState(prevState => ({
-        appointmentList: [...prevState.appointmentList, newAppointment],
+  onChangeTitleInput = event => {
+    this.setState({titleInput: event.target.value})
+  }
 
-        title: '',
-        date: '',
-      }))
+  onAddAppointment = event => {
+    event.preventDefault()
+    const {titleInput, dateInput} = this.state
+    const formattedDate = dateInput
+      ? format(new Date(dateInput), 'dd MMMM yyyy, EEEE')
+      : ''
+    const newAppointment = {
+      id: v4(),
+      title: titleInput,
+      date: formattedDate,
+      isStarred: false,
     }
+
+    this.setState(prevState => ({
+      appointmentsList: [...prevState.appointmentsList, newAppointment],
+      titleInput: '',
+      dateInput: '',
+    }))
+  }
+
+  getFilteredAppointmentsList = () => {
+    const {appointmentsList, isFilterActive} = this.state
+
+    if (isFilterActive) {
+      return appointmentsList.filter(
+        eachTransaction => eachTransaction.isStarred === true,
+      )
+    }
+    return appointmentsList
   }
 
   render() {
-    const {title, date, appointmentList, isFilter} = this.state
+    const {titleInput, dateInput, isFilterActive} = this.state
+    const filterClassName = isFilterActive ? 'filter-filled' : 'filter-empty'
+    const filteredAppointmentsList = this.getFilteredAppointmentsList()
 
     return (
-      <div className="main-app-container">
-        <div className="appointment-container">
-          <div className="appointment-details-container">
-            <div className="appointment-details">
-              <h1>Add Appointment</h1>
-              <form>
-                <label htmlFor="Title">Title</label>
-                <br />
+      <div className="app-container">
+        <div className="responsive-container">
+          <div className="appointments-container">
+            <div className="add-appointment-container">
+              <form className="form" onSubmit={this.onAddAppointment}>
+                <h1 className="add-appointment-heading">Add Appointment</h1>
+                <label htmlFor="title" className="label">
+                  TITLE
+                </label>
                 <input
                   type="text"
-                  id="Title"
-                  value={title}
-                  onChange={this.titleInput}
+                  id="title"
+                  value={titleInput}
+                  onChange={this.onChangeTitleInput}
+                  className="input"
                   placeholder="Title"
                 />
-                <br />
-                <label htmlFor="Date">Date</label>
-                <br />
+                <label htmlFor="date" className="label">
+                  DATE
+                </label>
                 <input
                   type="date"
-                  id="Date"
-                  name="Date"
-                  value={date}
-                  onChange={this.dateInput}
+                  id="date"
+                  value={dateInput}
+                  onChange={this.onChangeDateInput}
+                  className="input"
                 />
-                <br />
-                <button type="button" onClick={this.addAppointment}>
+                <button type="submit" className="add-button">
                   Add
                 </button>
               </form>
-            </div>
-            <div className="appointment-details-image">
               <img
                 src="https://assets.ccbp.in/frontend/react-js/appointments-app/appointments-img.png"
                 alt="appointments"
+                className="appointments-img"
               />
             </div>
-          </div>
-          <hr />
-          <div>
-            <div className="d-flex space-between">
-              <h3>Appointments</h3>
+            <hr className="hr" />
+            <div className="header-with-filter-container">
+              <h1 className="appointments-heading">Appointments</h1>
               <button
                 type="button"
-                className={isFilter ? `star-button active` : `star-button`}
-                onClick={this.filterStared}
+                className={`filter-style ${filterClassName}`}
+                onClick={this.onFilter}
               >
                 Starred
               </button>
             </div>
-
-            <ul className="list-appointments">
-              {appointmentList.map(each => (
-                <li key={each.id}>
-                  <AppointmentItem eachDetails={each} onStart={this.onStart} />
-                </li>
+            <ul className="appointments-list">
+              {filteredAppointmentsList.map(eachAppointment => (
+                <AppointmentItem
+                  key={eachAppointment.id}
+                  appointmentDetails={eachAppointment}
+                  toggleIsStarred={this.toggleIsStarred}
+                />
               ))}
             </ul>
           </div>
@@ -136,4 +141,5 @@ class Appointments extends Component {
     )
   }
 }
+
 export default Appointments
